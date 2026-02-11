@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Valentine</title>
+
+<style>
+body, button, h1, p {
+  font-family: -apple-system, BlinkMacSystemFont,
+               "SF Pro Display", "SF Pro Text", sans-serif;
+}
+
+body {
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: -10%;
+  background: url("background.jpg") center/cover no-repeat;
+  filter: blur(8px);
+  z-index: -1;
+}
+
+.container {
+  text-align: center;
+  color: #fff;
+  max-width: 420px;
+}
+
+h1 {
+  font-size: 28px;
+  text-shadow: 0 6px 18px rgba(0,0,0,.45);
+}
+
+img {
+  width: 220px;
+  border-radius: 14px;
+  margin: 16px 0;
+}
+
+/* ===== BUTTONS ===== */
+button {
+  font-size: 20px;
+  padding: 18px 40px;
+  margin: 10px;
+  border-radius: 22px;
+  border: 1.5px solid rgba(255,255,255,.8);
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  cursor: pointer;
+  backdrop-filter: blur(14px);
+  transition: all .25s ease;
+}
+
+button:hover {
+  transform: scale(1.08);
+}
+
+#yes {
+  background: rgba(255,80,150,.8);
+  animation: pulse 1.6s infinite;
+}
+
+#no {
+  background: rgba(180,180,180,.5);
+  position: relative;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+/* ===== APPLE FADE ===== */
+.fade {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== FINAL ===== */
+#final {
+  display: none;
+  text-align: center;
+  color: #fff;
+}
+
+.final-text {
+  font-size: 22px;
+}
+
+.emoji {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+}
+
+/* ===== HEARTS ===== */
+.flying-img {
+  position: absolute;
+  pointer-events: none;
+  animation: float 4s infinite alternate ease-in-out;
+}
+
+@keyframes float {
+  from { transform: translate(0,0) rotate(0); }
+  to   { transform: translate(10px,-14px) rotate(6deg); }
+}
+</style>
+</head>
+
+<body>
+
+<!-- INTRO -->
+<div class="container" id="intro">
+  <h1 class="fade" id="introText">сначала тыкни меня</h1>
+  <button class="fade" id="play">тык ✨</button>
+</div>
+
+<!-- MAIN -->
+<div class="container" id="main" style="display:none;">
+  <h1 class="fade" id="question">Будешь моей Валентинкой? 💖</h1>
+  <img class="fade" id="cat" src="cat1.png">
+  <div class="fade" id="buttonsBlock">
+    <button id="yes">Да</button>
+    <button id="no">Нет</button>
+  </div>
+</div>
+
+<!-- FINAL -->
+<div id="final">
+  <h1 class="fade">УРАА!!! 💘</h1>
+  <img class="fade" src="final.png">
+  <p class="fade final-text">
+    Теперь ты моя Валентинка <span class="emoji">🥰</span>
+  </p>
+</div>
+
+<audio id="music" src="music.mp3" loop></audio>
+<audio id="hover-sound" src="hover.mp3"></audio>
+<audio id="click-sound" src="click.mp3"></audio>
+
+<script>
+const intro = document.getElementById("intro");
+const main = document.getElementById("main");
+const final = document.getElementById("final");
+
+const play = document.getElementById("play");
+const music = document.getElementById("music");
+
+const yes = document.getElementById("yes");
+const no = document.getElementById("no");
+const question = document.getElementById("question");
+const cat = document.getElementById("cat");
+const buttonsBlock = document.getElementById("buttonsBlock");
+
+const hoverSound = document.getElementById("hover-sound");
+const clickSound = document.getElementById("click-sound");
+
+/* ===== BUTTON SOUNDS ===== */
+[yes, no, play].forEach(btn => {
+  btn.addEventListener('mouseenter', () => { hoverSound.currentTime = 0; hoverSound.play(); });
+  btn.addEventListener('click', () => { clickSound.currentTime = 0; clickSound.play(); });
+});
+
+/* ===== FADE ===== */
+function show(el, delay) {
+  setTimeout(() => {
+    el.style.animation = "fadeUp .6s ease forwards";
+  }, delay);
+}
+
+show(introText, 0);
+show(play, 500);
+
+play.onclick = () => {
+  music.play();
+  intro.style.display = "none";
+  main.style.display = "block";
+
+  show(question, 0);
+  show(cat, 500);
+  show(buttonsBlock, 1000);
+};
+
+/* ===== NO BUTTON WITH LIMIT 20 ===== */
+let step = 0;
+let grow = 0;
+let noClicks = 0;
+
+const stages = [
+  ["Ты уверена?.. 🥺", "cat2.png"],
+  ["Ну пожалуйста 💔", "cat3.png"],
+  ["Мне грустно 😿", "cat4.png"],
+  ["Выбора нет 😈", "cat5.png"]
+];
+
+no.onclick = () => {
+  noClicks++;
+
+  if (noClicks >= 20) {
+    no.style.display = "none";
+    return;
+  }
+
+  if (step < stages.length) {
+    question.textContent = stages[step][0];
+    cat.src = stages[step][1];
+    step++;
+  }
+
+  no.style.transform =
+    `translate(${Math.random()*240-120}px,${Math.random()*240-120}px)`;
+
+  grow += 14;
+  yes.style.fontSize = (20 + grow/8) + "px";
+  yes.style.padding =
+    (18 + grow/10) + "px " + (40 + grow/4) + "px";
+};
+
+/* ===== YES ===== */
+let heartsEnabled = false;
+
+yes.onclick = () => {
+  main.style.display = "none";
+  final.style.display = "block";
+
+  final.querySelectorAll(".fade")
+       .forEach((el,i)=>show(el,i*500));
+
+  setTimeout(()=>heartsEnabled=true,1200);
+};
+
+/* ===== HEARTS ===== */
+const heartImages = [
+  "heart1.jpg","heart2.jpg","heart3.jpg","heart4.jpg","heart5.jpg",
+  "heart6.jpg","heart7.jpg","heart8.jpg","heart9.jpg","heart10.jpg"
+];
+
+let clickCount = 0;
+
+document.addEventListener("click", e => {
+  if (!heartsEnabled) return;
+  if (final.style.display !== "block") return;
+
+  const img = document.createElement("img");
+  const size = 195 + Math.random()*80;
+
+  if (clickCount < heartImages.length) {
+    img.src = heartImages[clickCount];
+  } else {
+    img.src = heartImages[Math.floor(Math.random() * heartImages.length)];
+  }
+
+  clickCount++;
+
+  img.className = "flying-img";
+  img.style.width = size + "px";
+  img.style.left = (e.clientX - size/2) + "px";
+  img.style.top  = (e.clientY - size/2) + "px";
+
+  document.body.appendChild(img);
+
+  /* ===== CLICK SOUND ON HEART ===== */
+  clickSound.currentTime = 0;
+  clickSound.play();
+});
+</script>
+
+</body>
+</html>
